@@ -1,0 +1,116 @@
+// Kinetik Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Phase 1: Auth
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  createdAt    DateTime @default(now())
+
+  refreshTokens RefreshToken[]
+  profile       Profile?
+  timeLogs      TimeLog[]
+  diaryEntries  DiaryEntry[]
+  phraseTemplates PhraseTemplate[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// Phase 2: Onboarding / Setup
+model Profile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  school              String?
+  company             String?
+  companyLogoUrl      String?
+  position            String?
+  assignedOffice      String?
+  courseYear          String?
+  supervisorName      String?
+  targetHours         Int?
+  startDate           DateTime?
+  hoursPerDayDefault  Float    @default(8.0)
+  weeklyWorkDays      Json?    // array of weekday ints [1,2,3,4,5]
+  phHolidays          Json?    // array of {date, name, included}
+  onboardingComplete  Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Phase 3: Time Logs
+model TimeLog {
+  id          String   @id @default(uuid())
+  userId      String
+  date        DateTime @db.Date
+  hoursLogged Float
+  note        String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("time_logs")
+}
+
+// Phase 4: Diary
+model PhraseTemplate {
+  id           String   @id @default(uuid())
+  userId       String
+  category     String
+  templateText String   @db.Text
+  isUserSaved  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, category])
+  @@map("phrase_templates")
+}
+
+model DiaryEntry {
+  id           String   @id @default(uuid())
+  userId       String
+  date         DateTime @db.Date
+  category     String
+  detail       String   @db.Text
+  tags         Json?    // array of strings
+  composedText String   @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("diary_entries")
+}
