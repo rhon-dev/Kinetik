@@ -5,11 +5,21 @@ import api from '../lib/api';
 import '../styles/setup.css';
 
 const TARGET_HOURS_OPTIONS = [240, 300, 480, 600];
+const DAYS = [
+  { label: 'Mon', value: 1 },
+  { label: 'Tue', value: 2 },
+  { label: 'Wed', value: 3 },
+  { label: 'Thu', value: 4 },
+  { label: 'Fri', value: 5 },
+  { label: 'Sat', value: 6 },
+  { label: 'Sun', value: 0 },
+];
 
 export default function Setup() {
   const navigate = useNavigate();
   const { completeOnboarding } = useAuth();
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [profile, setProfile] = useState({
     school: '',
     company: '',
@@ -22,9 +32,6 @@ export default function Setup() {
     hoursPerDayDefault: 8,
     weeklyWorkDays: [1, 2, 3, 4, 5],
   });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/profile').then((res) => {
@@ -46,23 +53,19 @@ export default function Setup() {
     });
   }, []);
 
-  const toggleWeekday = (day) => {
-    const newDays = profile.weeklyWorkDays.includes(day)
-      ? profile.weeklyWorkDays.filter((d) => d !== day)
-      : [...profile.weeklyWorkDays, day];
-    setProfile({ ...profile, weeklyWorkDays: newDays.sort() });
+  const toggleDay = (val) => {
+    const days = profile.weeklyWorkDays.includes(val)
+      ? profile.weeklyWorkDays.filter((d) => d !== val)
+      : [...profile.weeklyWorkDays, val];
+    setProfile({ ...profile, weeklyWorkDays: days.sort((a, b) => a - b) });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      await api.put('/profile', {
-        ...profile,
-        onboardingComplete: true,
-      });
+      await api.put('/profile', { ...profile, onboardingComplete: true });
       completeOnboarding();
       navigate('/dashboard');
     } catch (err) {
@@ -71,60 +74,99 @@ export default function Setup() {
     }
   };
 
+  const sectionTitle = (text) => (
+    <h3
+      style={{
+        fontSize: '0.8125rem',
+        fontWeight: 600,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.4)',
+        marginBottom: '1.25rem',
+        marginTop: '1.75rem',
+        paddingTop: '1.75rem',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      {text}
+    </h3>
+  );
+
   return (
     <div className="setup-container">
       <div className="setup-card">
-        <h1>Welcome to Kinetik</h1>
-        <p>Set up your internship profile to get started.</p>
+        <h1>Setup Profile</h1>
+        <p>Fill in your internship details to get started.</p>
 
         <form onSubmit={handleSubmit}>
+          {/* Internship Details */}
+          {sectionTitle('Internship Details')}
+
           <div className="form-group">
-            <label>School</label>
+            <label>School / University</label>
             <input
+              type="text"
               value={profile.school}
               onChange={(e) => setProfile({ ...profile, school: e.target.value })}
+              placeholder="e.g. University of the Philippines"
             />
           </div>
 
           <div className="form-group">
             <label>Company</label>
             <input
+              type="text"
               value={profile.company}
               onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+              placeholder="e.g. Acme Corp"
             />
           </div>
 
           <div className="form-group">
-            <label>Position/Designation</label>
+            <label>Position / Designation</label>
             <input
+              type="text"
               value={profile.position}
               onChange={(e) => setProfile({ ...profile, position: e.target.value })}
+              placeholder="e.g. Software Engineering Intern"
             />
           </div>
 
           <div className="form-group">
-            <label>Assigned Office</label>
+            <label>Assigned Office / Department</label>
             <input
+              type="text"
               value={profile.assignedOffice}
               onChange={(e) => setProfile({ ...profile, assignedOffice: e.target.value })}
+              placeholder="e.g. IT Department"
             />
           </div>
 
-          <div className="form-group">
-            <label>Course/Year</label>
-            <input
-              value={profile.courseYear}
-              onChange={(e) => setProfile({ ...profile, courseYear: e.target.value })}
-            />
+          <div
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}
+          >
+            <div className="form-group">
+              <label>Course / Year</label>
+              <input
+                type="text"
+                value={profile.courseYear}
+                onChange={(e) => setProfile({ ...profile, courseYear: e.target.value })}
+                placeholder="e.g. BSCS 4th Year"
+              />
+            </div>
+            <div className="form-group">
+              <label>Supervisor Name</label>
+              <input
+                type="text"
+                value={profile.supervisorName}
+                onChange={(e) => setProfile({ ...profile, supervisorName: e.target.value })}
+                placeholder="e.g. Juan dela Cruz"
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Supervisor Name</label>
-            <input
-              value={profile.supervisorName}
-              onChange={(e) => setProfile({ ...profile, supervisorName: e.target.value })}
-            />
-          </div>
+          {/* Hours & Schedule */}
+          {sectionTitle('Hours & Schedule')}
 
           <div className="form-group">
             <label>Target Hours</label>
@@ -153,40 +195,56 @@ export default function Setup() {
           </div>
 
           <div className="form-group">
-            <label>Hours Per Day (Default: {profile.hoursPerDayDefault}h)</label>
+            <label>
+              Default Hours Per Day &mdash;{' '}
+              <span style={{ color: '#d4e157', fontWeight: 600 }}>
+                {profile.hoursPerDayDefault}h
+              </span>
+            </label>
             <input
               type="range"
               min="1"
               max="12"
               step="0.5"
               value={profile.hoursPerDayDefault}
-              onChange={(e) => setProfile({ ...profile, hoursPerDayDefault: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                setProfile({ ...profile, hoursPerDayDefault: parseFloat(e.target.value) })
+              }
             />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: '0.8125rem',
+                marginTop: '0.375rem',
+              }}
+            >
+              <span>1h</span>
+              <span>12h</span>
+            </div>
           </div>
 
           <div className="form-group">
-            <label>Work Days</label>
+            <label>Weekly Work Days</label>
             <div className="chip-group">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
-                const dayNum = idx === 6 ? 0 : idx + 1;
-                return (
-                  <button
-                    key={dayNum}
-                    type="button"
-                    className={profile.weeklyWorkDays.includes(dayNum) ? 'chip active' : 'chip'}
-                    onClick={() => toggleWeekday(dayNum)}
-                  >
-                    {day}
-                  </button>
-                );
-              })}
+              {DAYS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={profile.weeklyWorkDays.includes(value) ? 'chip active' : 'chip'}
+                  onClick={() => toggleDay(value)}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
           {error && <div className="error">{error}</div>}
 
           <button type="submit" disabled={loading} className="primary-btn">
-            {loading ? 'Saving...' : 'Complete Setup'}
+            {loading ? 'Saving...' : 'Complete Setup →'}
           </button>
         </form>
       </div>

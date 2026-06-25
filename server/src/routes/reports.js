@@ -121,6 +121,8 @@ router.post(
       previousAccumulated: previousAccumulatedHours,
       remarks: remarks || '',
       photoUrls,
+      periodStart: periodStart || (customDays && customDays[0]),
+      periodEnd: periodEnd || (customDays && customDays[customDays.length - 1]),
     };
 
     // Generate report
