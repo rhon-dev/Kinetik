@@ -16,13 +16,14 @@ import {
 
 const router = express.Router();
 
-// Rate limiter: 5 attempts per 10 minutes per IP
+// Rate limiter: 20 attempts per 10 minutes per IP in dev, 5 in production
 const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 20,
   message: { error: 'Too many authentication attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'development', // disable entirely in dev
 });
 
 // Validation schemas
