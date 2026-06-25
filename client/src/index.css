@@ -181,3 +181,5 @@ textarea::placeholder {
   margin-bottom: 1rem;
   font-size: 0.875rem;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }
