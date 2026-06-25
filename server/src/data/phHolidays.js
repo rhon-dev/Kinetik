@@ -1,0 +1,26 @@
+// PH Public Holidays 2026 — Gazetted (hardcoded, no external API)
+// Source: Proclamation No. XXXX — update from official gazette before launch.
+
+export const PH_HOLIDAYS_2026 = [
+  { date: '2026-01-01', name: "New Year's Day" },
+  { date: '2026-01-29', name: 'Chinese New Year' },
+  { date: '2026-02-25', name: 'EDSA People Power Anniversary' },
+  { date: '2026-04-02', name: 'Maundy Thursday' },
+  { date: '2026-04-03', name: 'Good Friday' },
+  { date: '2026-04-04', name: 'Black Saturday' },
+  { date: '2026-04-09', name: 'Day of Valor (Araw ng Kagitingan)' },
+  { date: '2026-05-01', name: 'Labor Day' },
+  { date: '2026-06-12', name: 'Independence Day' },
+  { date: '2026-08-21', name: 'Ninoy Aquino Day' },
+  { date: '2026-08-31', name: 'National Heroes Day' },
+  { date: '2026-11-01', name: "All Saints' Day" },
+  { date: '2026-11-02', name: "All Souls' Day" },
+  { date: '2026-11-30', name: 'Bonifacio Day' },
+  { date: '2026-12-08', name: 'Feast of the Immaculate Conception' },
+  { date: '2026-12-24', name: 'Christmas Eve' },
+  { date: '2026-12-25', name: 'Christmas Day' },
+  { date: '2026-12-30', name: 'Rizal Day' },
+  { date: '2026-12-31', name: "New Year's Eve" },
+];
+
+export default PH_HOLIDAYS_2026;
